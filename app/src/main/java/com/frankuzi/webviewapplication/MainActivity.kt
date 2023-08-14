@@ -1,26 +1,36 @@
 package com.frankuzi.webviewapplication
 
 import android.os.Bundle
-import android.util.Log
 import android.webkit.CookieManager
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.frankuzi.webviewapplication.data.repository.UrlRepositoryImpl
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
 import com.frankuzi.webviewapplication.presentation.UrlState
 import com.frankuzi.webviewapplication.presentation.UrlViewModel
 import com.frankuzi.webviewapplication.ui.theme.WebviewapplicationTheme
@@ -28,13 +38,6 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberSaveableWebViewState
 import com.google.accompanist.web.rememberWebViewNavigator
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.remoteconfig.ConfigUpdate
-import com.google.firebase.remoteconfig.ConfigUpdateListener
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
-import com.google.firebase.remoteconfig.ktx.remoteConfig
-import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,10 +76,13 @@ fun Content(
             PlugContent()
         }
         UrlState.UrlGetting -> {
-
+            GettingContent()
         }
         is UrlState.UrlError -> {
-            ErrorContent(state)
+            ErrorContent(
+                errorState = state,
+                onRetryButtonClick = urlViewModel::getUrl
+            )
         }
     }
 }
@@ -137,7 +143,8 @@ fun PlugContent() {
 
 @Composable
 fun ErrorContent(
-    errorState: UrlState.UrlError
+    errorState: UrlState.UrlError,
+    onRetryButtonClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -147,6 +154,30 @@ fun ErrorContent(
     ) {
         Text(
             text = errorState.message
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        Button(onClick = {
+            onRetryButtonClick.invoke()
+        }) {
+            Text(text = "Retry")
+        }
+    }
+}
+
+@Composable
+fun GettingContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = "logo",
+            modifier = Modifier
+                .clip(CircleShape)
+                .paint(
+                    painterResource(id = R.drawable.ic_launcher_background),
+                    contentScale = ContentScale.FillBounds)
         )
     }
 }
