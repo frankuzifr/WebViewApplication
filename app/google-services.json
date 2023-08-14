@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "673271614980",
+    "project_id": "webview-application-e2c73",
+    "storage_bucket": "webview-application-e2c73.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673271614980:android:562241df0da8acd0d5ef51",
+        "android_client_info": {
+          "package_name": "com.frankuzi.webviewapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "673271614980-3vev0vske9b047ir8demc2lmruq6g0eo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVV_mqA21c93ty3dasx7arn1yq8KUSlgI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "673271614980-3vev0vske9b047ir8demc2lmruq6g0eo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
