@@ -39,6 +39,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
@@ -68,6 +69,9 @@ dependencies {
 
     //WebView
     implementation("com.google.accompanist:accompanist-webview:0.33.0-alpha")
+
+    //Gson
+    implementation("com.google.code.gson:gson:2.9.0")
 
     //Test
     testImplementation("junit:junit:4.13.2")

@@ -1,9 +1,12 @@
 package com.frankuzi.webviewapplication.presentation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.frankuzi.webviewapplication.data.repository.UrlRepositoryImpl
 import com.frankuzi.webviewapplication.domain.repository.UrlRepository
+import com.frankuzi.webviewapplication.presentation.utils.EmulatorChecker
 import com.frankuzi.webviewapplication.presentation.utils.InternetConnectionChecker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,19 +14,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class UrlViewModel(
+    val urlRepository: UrlRepository
 ): ViewModel() {
     private var _urlState = MutableStateFlow<UrlState>(UrlState.UrlGetting)
     val urlState: StateFlow<UrlState> = _urlState.asStateFlow()
 
-    private val _urlRepository: UrlRepository = UrlRepositoryImpl()
     private val _internetConnectionChecker = InternetConnectionChecker()
+    private val _emulatorChecker = EmulatorChecker()
 
     fun getUrl() {
-        _urlState.update {
-            UrlState.UrlGetting
+
+        if (_emulatorChecker.isEmulator()) {
+            _urlState.update {
+                UrlState.UrlNotExist
+            }
+            return
         }
 
-        Log.i("IsOnline", _internetConnectionChecker.isOnline().toString())
         if (!_internetConnectionChecker.isOnline()) {
             _urlState.update {
                 UrlState.UrlError("Connection failed")
@@ -31,8 +38,12 @@ class UrlViewModel(
             return
         }
 
+        _urlState.update {
+            UrlState.UrlGetting
+        }
+
         try {
-            val url = _urlRepository.getUrl()
+            val url = urlRepository.getUrl()
             _urlState.update {
                 if (url.isEmpty())
                     UrlState.UrlNotExist
@@ -43,6 +54,18 @@ class UrlViewModel(
         } catch (e: Throwable) {
             _urlState.update {
                 UrlState.UrlError(e.message ?: "Error")
+            }
+        }
+    }
+
+    companion object {
+        val factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val repository = UrlRepositoryImpl()
+
+                UrlViewModel(
+                    urlRepository = repository
+                )
             }
         }
     }

@@ -28,7 +28,9 @@ class UrlRepositoryImpl: UrlRepository {
 
         _remoteFirebase.fetchAndActivate()
         val url = _remoteFirebase.getString("url")
-        _urlFileStorage?.saveUrl(url)
+
+        if (url.isNotEmpty())
+            _urlFileStorage?.saveUrl(url)
 
         return url
     }

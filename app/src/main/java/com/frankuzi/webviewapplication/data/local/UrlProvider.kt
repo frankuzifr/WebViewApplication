@@ -3,7 +3,7 @@ package com.frankuzi.webviewapplication.data.local
 import android.content.Context
 import java.io.File
 
-class UrlFileStorage(
+class UrlProvider(
     context: Context
 ) {
     private val _file = File(context.filesDir, "urlLink")

@@ -1,56 +1,54 @@
 package com.frankuzi.webviewapplication
 
+import android.app.Activity
 import android.os.Bundle
-import android.webkit.CookieManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import com.frankuzi.webviewapplication.presentation.UrlState
 import com.frankuzi.webviewapplication.presentation.UrlViewModel
-import com.frankuzi.webviewapplication.ui.theme.WebviewapplicationTheme
-import com.google.accompanist.web.AccompanistWebViewClient
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberSaveableWebViewState
-import com.google.accompanist.web.rememberWebViewNavigator
+import com.frankuzi.webviewapplication.presentation.screens.ErrorContent
+import com.frankuzi.webviewapplication.presentation.screens.GettingContent
+import com.frankuzi.webviewapplication.presentation.screens.PlugContent
+import com.frankuzi.webviewapplication.presentation.screens.WebViewContent
+import com.frankuzi.webviewapplication.ui.theme.WebViewApplicationTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val urlViewModel: UrlViewModel by viewModels()
+        val urlViewModel: UrlViewModel by viewModels {
+            UrlViewModel.factory
+        }
 
         if (savedInstanceState == null)
             urlViewModel.getUrl()
 
         setContent {
-            WebviewapplicationTheme {
-                // A surface container using the 'background' color from the theme
+            WebViewApplicationTheme {
+                val isSystemInDarkTheme = isSystemInDarkTheme()
+                val color = MaterialTheme.colorScheme.primary
+
+                val view = LocalView.current
+                if (!view.isInEditMode) {
+                    SideEffect {
+                        val activity = view.context as Activity
+                        activity.window.statusBarColor = color.toArgb()
+                        WindowCompat.getInsetsController(activity.window, view).isAppearanceLightStatusBars = !isSystemInDarkTheme
+                    }
+                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -70,6 +68,7 @@ fun Content(
 
     when (val state = urlState.value) {
         is UrlState.UrlExist -> {
+//            PlugContent()
             WebViewContent(state)
         }
         UrlState.UrlNotExist -> {
@@ -84,100 +83,5 @@ fun Content(
                 onRetryButtonClick = urlViewModel::getUrl
             )
         }
-    }
-}
-
-@Composable
-fun WebViewContent(
-    urkExistsState: UrlState.UrlExist
-) {
-
-    val webViewState = rememberSaveableWebViewState()
-    val navigator = rememberWebViewNavigator()
-    val webClient = remember {
-        object : AccompanistWebViewClient() {}
-    }
-
-    LaunchedEffect(navigator) {
-        val bundle = webViewState.viewState
-        if (bundle == null) {
-            navigator.loadUrl(urkExistsState.url)
-        }
-    }
-
-    WebView(
-        state = webViewState,
-        navigator = navigator,
-        onCreated = { webView ->
-            webView.settings.javaScriptEnabled = true
-            webView.settings.loadWithOverviewMode = true
-            webView.settings.useWideViewPort = true
-            webView.settings.domStorageEnabled = true
-            webView.settings.databaseEnabled = true
-            webView.settings.allowFileAccess = true
-            webView.settings.allowContentAccess = true
-            webView.settings.javaScriptCanOpenWindowsAutomatically = true
-            webView.settings.setSupportZoom(false)
-
-            val cookieManager = CookieManager.getInstance()
-            cookieManager.setAcceptCookie(true)
-            cookieManager.setAcceptThirdPartyCookies(webView, true)
-        },
-        client = webClient
-    )
-}
-
-@Composable
-fun PlugContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Plug"
-        )
-    }
-}
-
-@Composable
-fun ErrorContent(
-    errorState: UrlState.UrlError,
-    onRetryButtonClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = errorState.message
-        )
-        Spacer(modifier = Modifier.height(5.dp))
-        Button(onClick = {
-            onRetryButtonClick.invoke()
-        }) {
-            Text(text = "Retry")
-        }
-    }
-}
-
-@Composable
-fun GettingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "logo",
-            modifier = Modifier
-                .clip(CircleShape)
-                .paint(
-                    painterResource(id = R.drawable.ic_launcher_background),
-                    contentScale = ContentScale.FillBounds)
-        )
     }
 }
