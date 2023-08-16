@@ -2,6 +2,7 @@ package com.frankuzi.webviewapplication.presentation.screens
 
 import android.annotation.SuppressLint
 import android.webkit.CookieManager
+import android.webkit.WebChromeClient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -43,6 +44,7 @@ fun WebViewContent(
             webView.settings.allowContentAccess = true
             webView.settings.javaScriptCanOpenWindowsAutomatically = true
             webView.settings.setSupportZoom(false)
+            webView.webChromeClient = WebChromeClient()
 
             val cookieManager = CookieManager.getInstance()
             cookieManager.setAcceptCookie(true)

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.frankuzi.webviewapplication.presentation.QuizViewModel
 import com.frankuzi.webviewapplication.presentation.UrlState
 import com.frankuzi.webviewapplication.presentation.UrlViewModel
 import com.frankuzi.webviewapplication.presentation.screens.ErrorContent
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
         val urlViewModel: UrlViewModel by viewModels {
             UrlViewModel.factory
         }
+        val quizViewModel: QuizViewModel by viewModels()
 
         if (savedInstanceState == null)
             urlViewModel.getUrl()
@@ -53,7 +55,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Content(urlViewModel)
+                    Content(urlViewModel, quizViewModel)
                 }
             }
         }
@@ -62,9 +64,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Content(
-    urlViewModel: UrlViewModel
+    urlViewModel: UrlViewModel,
+    quizViewModel: QuizViewModel
 ) {
     val urlState = urlViewModel.urlState.collectAsState()
+    val quizScreenState = quizViewModel.currentScreen.collectAsState()
 
     when (val state = urlState.value) {
         is UrlState.UrlExist -> {
@@ -72,7 +76,10 @@ fun Content(
             WebViewContent(state)
         }
         UrlState.UrlNotExist -> {
-            PlugContent()
+            PlugContent(
+                quizScreenState = quizScreenState,
+                onPlayClick = quizViewModel::openGame
+            )
         }
         UrlState.UrlGetting -> {
             GettingContent()
