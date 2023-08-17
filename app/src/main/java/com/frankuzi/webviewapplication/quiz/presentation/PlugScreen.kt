@@ -1,10 +1,16 @@
-package com.frankuzi.webviewapplication.presentation.screens
+package com.frankuzi.webviewapplication.quiz.presentation
 
+import android.annotation.SuppressLint
+import android.app.GameState
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +50,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.frankuzi.webviewapplication.presentation.QuizScreenState
+import com.frankuzi.webviewapplication.quiz.domain.model.Question
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,6 +60,14 @@ import java.util.Date
 fun PlugContent(
     quizScreenState: State<QuizScreenState>,
     onPlayClick: () -> Unit,
+    onMenuPlayClick: () -> Unit,
+    onAnswerClick: (Int) -> Unit,
+    onSaveScore: (Int) -> Unit,
+    onTimeEnd: () -> Unit,
+    currentLevel: State<Int>,
+    questions: List<Question>,
+    answers: State<List<Int>>,
+    bestScore: State<Int>,
 ) {
     Scaffold(
         modifier = Modifier
@@ -72,26 +86,49 @@ fun PlugContent(
 
         AnimatedVisibility(
             visible = quizScreenState.value == QuizScreenState.MenuScreen,
-            enter = slideInHorizontally(initialOffsetX = {-1500}, animationSpec = tween(400)),
-            exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400))
+            enter = slideInHorizontally(initialOffsetX = {-1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
+            exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
         ) {
             MenuContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = paddingValue.calculateTopPadding()),
-                onPlayClick = onPlayClick
+                onPlayClick = onPlayClick,
+                bestScore = bestScore
             )
         }
 
+        val isGameScreen = quizScreenState.value is QuizScreenState.GameScreen
         AnimatedVisibility(
-            visible = quizScreenState.value == QuizScreenState.GameScreen,
-            enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)),
-            exit = slideOutHorizontally(targetOffsetX = {1500}, animationSpec = tween(400))
+            visible = isGameScreen,
+            enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
+            exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
         ) {
             GameContent(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = paddingValue.calculateTopPadding())
+                    .padding(top = paddingValue.calculateTopPadding()),
+                questions = questions,
+                onAnswerClick = onAnswerClick,
+                currentLevel = currentLevel,
+                onTimeEnd = onTimeEnd
+            )
+        }
+
+        val isEndScreen = quizScreenState.value is QuizScreenState.EndScreen
+        AnimatedVisibility(
+            visible = isEndScreen,
+            enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
+            exit = slideOutHorizontally(targetOffsetX = {1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
+        ) {
+            EndContent(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValue.calculateTopPadding()),
+                questions = questions,
+                answers = answers,
+                onMenuPlayClick = onMenuPlayClick,
+                onSaveScore = onSaveScore
             )
         }
     }
@@ -100,7 +137,8 @@ fun PlugContent(
 @Composable
 fun MenuContent(
     modifier: Modifier = Modifier,
-    onPlayClick: () -> Unit
+    onPlayClick: () -> Unit,
+    bestScore: State<Int>
 ) {
     Box(
         modifier = modifier
@@ -109,7 +147,7 @@ fun MenuContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            text = "Best score:",
+            text = "Best score: ${bestScore.value}",
             textAlign = TextAlign.End,
             fontSize = 18.sp
         )
@@ -132,26 +170,29 @@ fun MenuContent(
     }
 }
 
+@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun GameContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentLevel: State<Int>,
+    questions: List<Question>,
+    onAnswerClick: (Int) -> Unit,
+    onTimeEnd: () -> Unit
 ) {
-    var currentLevel by rememberSaveable {
-        mutableIntStateOf(0)
-    }
+
     Box(modifier = modifier) {
-        (0..100).forEach {
+        questions.forEachIndexed { index, question ->
             AnimatedVisibility(
-                visible = currentLevel == it,
-                enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)),
-                exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400))
+                visible = currentLevel.value == index,
+                enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
+                exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
             ) {
                 LevelContent(
-                    name = it,
-                    answerClick = {
-                        if (currentLevel != 100)
-                            currentLevel++
-                    }
+                    question = question,
+                    answerClick = { answerIndex ->
+                        onAnswerClick.invoke(answerIndex)
+                    },
+                    onTimeEnd = onTimeEnd
                 )
             }
         }
@@ -159,18 +200,56 @@ fun GameContent(
 }
 
 @Composable
+fun EndContent(
+    modifier: Modifier = Modifier,
+    questions: List<Question>,
+    answers: State<List<Int>>,
+    onMenuPlayClick: () -> Unit,
+    onSaveScore: (Int) -> Unit
+) {
+
+    var countRight by remember {
+        mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(key1 = answers) {
+        answers.value.forEachIndexed { index, answerIndex ->
+            val rightAnswerIndex = questions[index].rightAnswerIndex
+            if (rightAnswerIndex == answerIndex)
+                countRight++
+
+            onSaveScore.invoke(countRight)
+        }
+    }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Count right anwers: $countRight")
+        Button(onClick = {
+            onMenuPlayClick.invoke()
+        }) {
+            Text(text = "Menu")
+        }
+    }
+}
+
+@Composable
 fun LevelContent(
-    name: Int,
-    answerClick: () -> Unit
+    question: Question,
+    answerClick: (Int) -> Unit,
+    onTimeEnd: () -> Unit
 ) {
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        val (buttons, question, timer) = createRefs()
+        val (buttons, questionView, timer) = createRefs()
 
         Timer(
-            totalTimeMs = 40L * 1000L,
+            totalTimeMs = 10L * 1000L,
             inactiveBarColor = Color.DarkGray,
             activeBarColor = Color.Cyan,
             modifier = Modifier
@@ -179,14 +258,15 @@ fun LevelContent(
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }
-                .size(60.dp)
+                .size(60.dp),
+            onTimeEnd = onTimeEnd
         )
 
         Text(
-            text = "Question $name",
+            text = question.questionText,
             fontSize = 24.sp,
             modifier = Modifier
-                .constrainAs(question) {
+                .constrainAs(questionView) {
                     top.linkTo(timer.top, 20.dp)
                     bottom.linkTo(buttons.top)
                     start.linkTo(parent.start)
@@ -210,26 +290,26 @@ fun LevelContent(
             ) {
                 Button(
                     onClick = {
-                        answerClick.invoke()
+                        answerClick.invoke(0)
                     },
                     shape = CutCornerShape(30.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-
+                    Text(text = question.answerVariants[0])
                 }
 
                 Button(
                     onClick = {
-                        answerClick.invoke()
+                        answerClick.invoke(1)
                     },
                     shape = CutCornerShape(30.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-
+                    Text(text = question.answerVariants[1])
                 }
 
             }
@@ -239,26 +319,26 @@ fun LevelContent(
             ) {
                 Button(
                     onClick = {
-                        answerClick.invoke()
+                        answerClick.invoke(2)
                     },
                     shape = CutCornerShape(30.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-
+                    Text(text = question.answerVariants[2])
                 }
 
                 Button(
                     onClick = {
-                        answerClick.invoke()
+                        answerClick.invoke(3)
                     },
                     shape = CutCornerShape(30.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-
+                    Text(text = question.answerVariants[3])
                 }
             }
         }
@@ -272,23 +352,26 @@ fun Timer(
     activeBarColor: Color,
     modifier: Modifier = Modifier,
     initialValue: Float = 1f,
-    strokeWidth: Dp = 5.dp
+    strokeWidth: Dp = 5.dp,
+    onTimeEnd: () -> Unit
 ) {
     var size by remember {
         mutableStateOf(IntSize.Zero)
     }
-    var value by remember {
+    var value by rememberSaveable {
         mutableFloatStateOf(initialValue)
     }
-    var currentTimeMs by remember {
+    var currentTimeMs by rememberSaveable {
         mutableLongStateOf(totalTimeMs)
     }
 
     LaunchedEffect(key1 = currentTimeMs) {
-        if(currentTimeMs > 0) {
+        if (currentTimeMs > 0) {
             delay(1000L)
             currentTimeMs -= 1000L
             value = currentTimeMs / totalTimeMs.toFloat()
+        } else {
+            onTimeEnd.invoke()
         }
     }
 

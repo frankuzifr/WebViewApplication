@@ -2,6 +2,7 @@ package com.frankuzi.webviewapplication
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -16,12 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.frankuzi.webviewapplication.presentation.QuizViewModel
+import com.frankuzi.webviewapplication.quiz.presentation.QuizViewModel
 import com.frankuzi.webviewapplication.presentation.UrlState
 import com.frankuzi.webviewapplication.presentation.UrlViewModel
 import com.frankuzi.webviewapplication.presentation.screens.ErrorContent
 import com.frankuzi.webviewapplication.presentation.screens.GettingContent
-import com.frankuzi.webviewapplication.presentation.screens.PlugContent
+import com.frankuzi.webviewapplication.quiz.presentation.PlugContent
 import com.frankuzi.webviewapplication.presentation.screens.WebViewContent
 import com.frankuzi.webviewapplication.ui.theme.WebViewApplicationTheme
 
@@ -32,7 +33,9 @@ class MainActivity : ComponentActivity() {
         val urlViewModel: UrlViewModel by viewModels {
             UrlViewModel.factory
         }
-        val quizViewModel: QuizViewModel by viewModels()
+        val quizViewModel: QuizViewModel by viewModels {
+            QuizViewModel.factory
+        }
 
         if (savedInstanceState == null)
             urlViewModel.getUrl()
@@ -69,16 +72,43 @@ fun Content(
 ) {
     val urlState = urlViewModel.urlState.collectAsState()
     val quizScreenState = quizViewModel.currentScreen.collectAsState()
+    val currentLevel = quizViewModel.currentQuestion.collectAsState()
+    val answers = quizViewModel.answers.collectAsState()
+    val bestScore = quizViewModel.bestScore.collectAsState()
 
     when (val state = urlState.value) {
         is UrlState.UrlExist -> {
-//            PlugContent()
             WebViewContent(state)
         }
         UrlState.UrlNotExist -> {
             PlugContent(
                 quizScreenState = quizScreenState,
-                onPlayClick = quizViewModel::openGame
+                onPlayClick = {
+                    quizViewModel.resetGame()
+                    quizViewModel.openGameScreen()
+                },
+                onMenuPlayClick = {
+                    quizViewModel.openMenuScreen()
+                },
+                onAnswerClick = { answer ->
+                    quizViewModel.nextLevel()
+                    quizViewModel.addAnswer(answer)
+                    if (quizViewModel.currentQuestion.value == quizViewModel.questions.size)
+                        quizViewModel.openEndGameScreen()
+                },
+                onSaveScore = { score ->
+                    quizViewModel.saveScore(score)
+                },
+                onTimeEnd = {
+                    quizViewModel.nextLevel()
+                    quizViewModel.addAnswer(-1)
+                    if (quizViewModel.currentQuestion.value == quizViewModel.questions.size)
+                        quizViewModel.openEndGameScreen()
+                },
+                currentLevel = currentLevel,
+                questions = quizViewModel.questions,
+                answers = answers,
+                bestScore = bestScore
             )
         }
         UrlState.UrlGetting -> {
