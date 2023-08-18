@@ -1,8 +1,10 @@
 package com.frankuzi.webviewapplication.presentation.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -17,11 +19,14 @@ import com.google.accompanist.web.rememberWebViewNavigator
 fun WebViewContent(
     urkExistsState: UrlState.UrlExist
 ) {
-
     val webViewState = rememberSaveableWebViewState()
     val navigator = rememberWebViewNavigator()
     val webClient = remember {
         object : AccompanistWebViewClient() {}
+    }
+
+    BackHandler {
+        Log.i("Back", "Back")
     }
 
     LaunchedEffect(navigator) {

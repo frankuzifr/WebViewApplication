@@ -1,40 +1,39 @@
 package com.frankuzi.webviewapplication.quiz.data.local
 
+import android.content.Context
+import com.frankuzi.webviewapplication.R
 import com.frankuzi.webviewapplication.quiz.domain.model.Question
+import com.google.gson.GsonBuilder
+import java.io.File
 
-class QuizStorage {
-    private var _bestScore = 0
+class QuizStorage(
+    val context: Context
+) {
+    private val _file = File(context.filesDir, "bestScore")
 
     fun getQuestions(): List<Question> {
-        return listOf(
-            Question(
-                questionText = "Кто ты?",
-                answerVariants = listOf(
-                    "Молодец",
-                    "Долбоеб",
-                    "Свой в доску",
-                    "Хто я"
-                ),
-                rightAnswerIndex = 2
-            ),
-            Question(
-                questionText = "Ы?",
-                answerVariants = listOf(
-                    "Ы",
-                    "Not ы",
-                    "???",
-                    "Кринге"
-                ),
-                rightAnswerIndex = 0
-            ),
-        )
+        val rawResource = context.resources.openRawResource(R.raw.questions)
+        val readText = rawResource.reader().readText()
+
+        val gson = GsonBuilder().create()
+        val levels = gson.fromJson(readText, Levels::class.java)
+        return levels.questions
     }
 
     fun saveBest(bestScore: Int) {
-        _bestScore = bestScore
+        _file.writeText(bestScore.toString())
     }
 
     fun getBest(): Int {
-        return _bestScore;
+        if (!_file.exists())
+            return 0
+
+        val readText = _file.readText()
+
+        return readText.toInt()
     }
 }
+
+data class Levels(
+    val questions: List<Question>
+)

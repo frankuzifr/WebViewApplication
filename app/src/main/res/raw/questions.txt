@@ -1,0 +1,54 @@
+{
+"questions": [
+{
+"questionText": "How long is a marathon? (km)",
+"answerVariants": ["38.12","32.56","42.195","48.45"],
+"rightAnswerIndex": "2"
+},
+{
+"questionText": "How many players are there on a baseball team?",
+"answerVariants": ["9","10","11","12"],
+"rightAnswerIndex": "0"
+},
+{
+"questionText": "Which country won the World Cup 2018?",
+"answerVariants": ["Germany","France","Netherlands","Spain"],
+"rightAnswerIndex": "1"
+},
+{
+"questionText": "How many F1 championships has Lewis Hamilton won?",
+"answerVariants": ["2","4","6","8"],
+"rightAnswerIndex": "2"
+},
+{
+"questionText": "How many English clubs have won the European Cup/Champions League?",
+"answerVariants": ["4","5","6","7"],
+"rightAnswerIndex": "1"
+},
+{
+"questionText": "What's the name of the MLS club part-owned by David Beckham?",
+"answerVariants": ["LA Galaxy","FC Dallas","Colorado Rapids","Inter Miami"],
+"rightAnswerIndex": "3"
+},
+{
+"questionText": "What is Usain Bolt’s world record time for 100m? (sec)",
+"answerVariants": ["9.58","9.87","10.02","10.33"],
+"rightAnswerIndex": "0"
+},
+{
+"questionText": "How many clubs has Zlatan Ibrahimovic played for?",
+"answerVariants": ["25","33","37","42"],
+"rightAnswerIndex": "1"
+},
+{
+"questionText": "What score do darts games at?",
+"answerVariants": ["500","501","502","503"],
+"rightAnswerIndex": "1"
+},
+{
+"questionText": "In which year did FIFA abolish the Golden Goal rule?",
+"answerVariants": ["1998","2001","2004","2008"],
+"rightAnswerIndex": "2"
+}
+]
+}

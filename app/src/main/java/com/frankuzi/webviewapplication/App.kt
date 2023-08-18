@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.util.Log
 import com.frankuzi.webviewapplication.data.local.UrlProvider
+import com.frankuzi.webviewapplication.quiz.data.local.QuizStorage
 
 class App: Application() {
     companion object {
@@ -13,6 +14,9 @@ class App: Application() {
 
         var connectivityManager: ConnectivityManager? = null
             private set
+
+        var quizStorage: QuizStorage? = null
+            private set
     }
 
     override fun onCreate() {
@@ -20,5 +24,6 @@ class App: Application() {
 
         urlFileStorage = UrlProvider(this)
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        quizStorage = QuizStorage(this)
     }
 }

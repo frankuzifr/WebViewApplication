@@ -1,8 +1,11 @@
 package com.frankuzi.webviewapplication.quiz.presentation
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.app.GameState
 import android.util.Log
+import android.widget.Space
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -14,11 +17,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -54,6 +61,7 @@ import com.frankuzi.webviewapplication.quiz.domain.model.Question
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +76,7 @@ fun PlugContent(
     questions: List<Question>,
     answers: State<List<Int>>,
     bestScore: State<Int>,
+    exitApplication: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier
@@ -84,8 +93,30 @@ fun PlugContent(
         }
     ) { paddingValue ->
 
+        val isMenuScreen = quizScreenState.value is QuizScreenState.MenuScreen
+        val isGameScreen = quizScreenState.value is QuizScreenState.GameScreen
+        val isEndScreen = quizScreenState.value is QuizScreenState.EndScreen
+
+        var dialogIsVisible by remember {
+            mutableStateOf(false)
+        }
+
+        BackHandler {
+            when {
+                isMenuScreen -> {
+                    exitApplication.invoke()
+                }
+                isGameScreen -> {
+                    dialogIsVisible = !dialogIsVisible
+                }
+                isEndScreen -> {
+                    onMenuPlayClick.invoke()
+                }
+            }
+        }
+
         AnimatedVisibility(
-            visible = quizScreenState.value == QuizScreenState.MenuScreen,
+            visible = isMenuScreen,
             enter = slideInHorizontally(initialOffsetX = {-1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
             exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
         ) {
@@ -98,11 +129,10 @@ fun PlugContent(
             )
         }
 
-        val isGameScreen = quizScreenState.value is QuizScreenState.GameScreen
         AnimatedVisibility(
             visible = isGameScreen,
             enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
-            exit = slideOutHorizontally(targetOffsetX = {-1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
+            exit = slideOutHorizontally(targetOffsetX = {if (isEndScreen)-1500 else 1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
         ) {
             GameContent(
                 modifier = Modifier
@@ -115,7 +145,6 @@ fun PlugContent(
             )
         }
 
-        val isEndScreen = quizScreenState.value is QuizScreenState.EndScreen
         AnimatedVisibility(
             visible = isEndScreen,
             enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
@@ -131,6 +160,34 @@ fun PlugContent(
                 onSaveScore = onSaveScore
             )
         }
+
+        if (dialogIsVisible)
+            AlertDialog(
+                onDismissRequest = {
+                    dialogIsVisible = false
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        onMenuPlayClick.invoke()
+                        dialogIsVisible = false
+                    }) {
+                        Text(text = "Yes")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = {
+                        dialogIsVisible = false
+                    }) {
+                        Text(text = "No")
+                    }
+                },
+                title = {
+                    Text(text = "")
+                },
+                text = {
+                    Text(text = "")
+                }
+            )
     }
 }
 
@@ -179,7 +236,6 @@ fun GameContent(
     onAnswerClick: (Int) -> Unit,
     onTimeEnd: () -> Unit
 ) {
-
     Box(modifier = modifier) {
         questions.forEachIndexed { index, question ->
             AnimatedVisibility(
@@ -227,11 +283,18 @@ fun EndContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Count right anwers: $countRight")
+        Text(
+            text = "Count right anwers: $countRight",
+            fontSize = 24.sp
+        )
+        Spacer(modifier = Modifier.height(10.dp))
         Button(onClick = {
             onMenuPlayClick.invoke()
         }) {
-            Text(text = "Menu")
+            Text(
+                text = "Menu",
+                fontSize = 24.sp
+            )
         }
     }
 }
@@ -249,7 +312,7 @@ fun LevelContent(
         val (buttons, questionView, timer) = createRefs()
 
         Timer(
-            totalTimeMs = 10L * 1000L,
+            totalTimeMs = 15L * 1000L,
             inactiveBarColor = Color.DarkGray,
             activeBarColor = Color.Cyan,
             modifier = Modifier
@@ -265,13 +328,15 @@ fun LevelContent(
         Text(
             text = question.questionText,
             fontSize = 24.sp,
+            textAlign = TextAlign.Center,
             modifier = Modifier
                 .constrainAs(questionView) {
-                    top.linkTo(timer.top, 20.dp)
+                    top.linkTo(timer.bottom)
                     bottom.linkTo(buttons.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }
+                .padding(start = 20.dp, end = 20.dp)
         )
 
         Column(

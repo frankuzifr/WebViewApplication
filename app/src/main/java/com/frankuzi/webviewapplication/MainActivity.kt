@@ -25,6 +25,7 @@ import com.frankuzi.webviewapplication.presentation.screens.GettingContent
 import com.frankuzi.webviewapplication.quiz.presentation.PlugContent
 import com.frankuzi.webviewapplication.presentation.screens.WebViewContent
 import com.frankuzi.webviewapplication.ui.theme.WebViewApplicationTheme
+import kotlin.system.exitProcess
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,7 +59,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Content(urlViewModel, quizViewModel)
+                    Content(
+                        urlViewModel = urlViewModel,
+                        quizViewModel = quizViewModel,
+                        applicationQuit = {
+                            finishAffinity()
+                            exitProcess(0)
+                        }
+                    )
                 }
             }
         }
@@ -68,7 +76,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Content(
     urlViewModel: UrlViewModel,
-    quizViewModel: QuizViewModel
+    quizViewModel: QuizViewModel,
+    applicationQuit: () -> Unit
 ) {
     val urlState = urlViewModel.urlState.collectAsState()
     val quizScreenState = quizViewModel.currentScreen.collectAsState()
@@ -108,7 +117,8 @@ fun Content(
                 currentLevel = currentLevel,
                 questions = quizViewModel.questions,
                 answers = answers,
-                bestScore = bestScore
+                bestScore = bestScore,
+                exitApplication = applicationQuit
             )
         }
         UrlState.UrlGetting -> {
