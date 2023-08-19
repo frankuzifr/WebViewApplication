@@ -1,10 +1,7 @@
 package com.frankuzi.webviewapplication.quiz.presentation
 
 import android.annotation.SuppressLint
-import android.app.Application
-import android.app.GameState
-import android.util.Log
-import android.widget.Space
+import android.content.res.Resources.Theme
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -12,7 +9,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +25,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -43,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -50,18 +52,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.frankuzi.webviewapplication.R
 import com.frankuzi.webviewapplication.quiz.domain.model.Question
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
-import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,6 +99,10 @@ fun PlugContent(
         val isGameScreen = quizScreenState.value is QuizScreenState.GameScreen
         val isEndScreen = quizScreenState.value is QuizScreenState.EndScreen
 
+        var timerInProgress by remember {
+            mutableStateOf(true)
+        }
+
         var dialogIsVisible by remember {
             mutableStateOf(false)
         }
@@ -108,6 +114,7 @@ fun PlugContent(
                 }
                 isGameScreen -> {
                     dialogIsVisible = !dialogIsVisible
+                    timerInProgress = !dialogIsVisible
                 }
                 isEndScreen -> {
                     onMenuPlayClick.invoke()
@@ -132,7 +139,7 @@ fun PlugContent(
         AnimatedVisibility(
             visible = isGameScreen,
             enter = slideInHorizontally(initialOffsetX = {1500}, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)),
-            exit = slideOutHorizontally(targetOffsetX = {if (isEndScreen)-1500 else 1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
+            exit = slideOutHorizontally(targetOffsetX = {if (isEndScreen) -1500 else 1500}, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400))
         ) {
             GameContent(
                 modifier = Modifier
@@ -141,7 +148,8 @@ fun PlugContent(
                 questions = questions,
                 onAnswerClick = onAnswerClick,
                 currentLevel = currentLevel,
-                onTimeEnd = onTimeEnd
+                onTimeEnd = onTimeEnd,
+                timerInProgress = timerInProgress
             )
         }
 
@@ -165,27 +173,42 @@ fun PlugContent(
             AlertDialog(
                 onDismissRequest = {
                     dialogIsVisible = false
+                    timerInProgress = true
                 },
                 confirmButton = {
-                    Button(onClick = {
-                        onMenuPlayClick.invoke()
-                        dialogIsVisible = false
-                    }) {
-                        Text(text = "Yes")
+                    Button(
+                        onClick = {
+                            onMenuPlayClick.invoke()
+                            dialogIsVisible = false
+                            timerInProgress = true
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.yes)
+                        )
                     }
                 },
                 dismissButton = {
-                    Button(onClick = {
-                        dialogIsVisible = false
-                    }) {
-                        Text(text = "No")
+                    Button(
+                        onClick = {
+                            dialogIsVisible = false
+                            timerInProgress = true
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        )
+                    ) {
+                        Text(text = stringResource(id = R.string.no))
                     }
                 },
                 title = {
-                    Text(text = "")
+                    Text(text = stringResource(id = R.string.exit_menu))
                 },
                 text = {
-                    Text(text = "")
+                    Text(text = stringResource(id = R.string.you_sure_want_exit))
                 }
             )
     }
@@ -204,7 +227,7 @@ fun MenuContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            text = "Best score: ${bestScore.value}",
+            text = stringResource(id = R.string.best_score, bestScore.value),
             textAlign = TextAlign.End,
             fontSize = 18.sp
         )
@@ -216,10 +239,13 @@ fun MenuContent(
             Button(
                 onClick = {
                     onPlayClick.invoke()
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
             ) {
                 Text(
-                    text = "Play",
+                    text = stringResource(id = R.string.play),
                     fontSize = 24.sp
                 )
             }
@@ -233,6 +259,7 @@ fun GameContent(
     modifier: Modifier = Modifier,
     currentLevel: State<Int>,
     questions: List<Question>,
+    timerInProgress: Boolean,
     onAnswerClick: (Int) -> Unit,
     onTimeEnd: () -> Unit
 ) {
@@ -248,7 +275,8 @@ fun GameContent(
                     answerClick = { answerIndex ->
                         onAnswerClick.invoke(answerIndex)
                     },
-                    onTimeEnd = onTimeEnd
+                    onTimeEnd = onTimeEnd,
+                    timerInProgress = timerInProgress
                 )
             }
         }
@@ -284,15 +312,20 @@ fun EndContent(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Count right anwers: $countRight",
+            text = stringResource(id = R.string.count_right_answers, countRight),
             fontSize = 24.sp
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Button(onClick = {
-            onMenuPlayClick.invoke()
-        }) {
+        Button(
+            onClick = {
+                onMenuPlayClick.invoke()
+            },
+            colors = ButtonDefaults.buttonColors(
+                contentColor = MaterialTheme.colorScheme.secondary
+            ),
+        ) {
             Text(
-                text = "Menu",
+                text = stringResource(id = R.string.menu),
                 fontSize = 24.sp
             )
         }
@@ -302,6 +335,7 @@ fun EndContent(
 @Composable
 fun LevelContent(
     question: Question,
+    timerInProgress: Boolean,
     answerClick: (Int) -> Unit,
     onTimeEnd: () -> Unit
 ) {
@@ -313,8 +347,8 @@ fun LevelContent(
 
         Timer(
             totalTimeMs = 15L * 1000L,
-            inactiveBarColor = Color.DarkGray,
-            activeBarColor = Color.Cyan,
+            inactiveBarColor = MaterialTheme.colorScheme.onSecondary,
+            activeBarColor = MaterialTheme.colorScheme.onTertiary,
             modifier = Modifier
                 .constrainAs(timer) {
                     top.linkTo(parent.top, 20.dp)
@@ -322,7 +356,8 @@ fun LevelContent(
                     end.linkTo(parent.end)
                 }
                 .size(60.dp),
-            onTimeEnd = onTimeEnd
+            onTimeEnd = onTimeEnd,
+            timerInProgress = timerInProgress
         )
 
         Text(
@@ -358,6 +393,10 @@ fun LevelContent(
                         answerClick.invoke(0)
                     },
                     shape = CutCornerShape(30.dp),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -370,6 +409,10 @@ fun LevelContent(
                         answerClick.invoke(1)
                     },
                     shape = CutCornerShape(30.dp),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -387,6 +430,10 @@ fun LevelContent(
                         answerClick.invoke(2)
                     },
                     shape = CutCornerShape(30.dp),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -399,6 +446,10 @@ fun LevelContent(
                         answerClick.invoke(3)
                     },
                     shape = CutCornerShape(30.dp),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -417,8 +468,9 @@ fun Timer(
     activeBarColor: Color,
     modifier: Modifier = Modifier,
     initialValue: Float = 1f,
-    strokeWidth: Dp = 5.dp,
-    onTimeEnd: () -> Unit
+    strokeWidth: Dp = 3.dp,
+    onTimeEnd: () -> Unit,
+    timerInProgress: Boolean
 ) {
     var size by remember {
         mutableStateOf(IntSize.Zero)
@@ -430,11 +482,13 @@ fun Timer(
         mutableLongStateOf(totalTimeMs)
     }
 
-    LaunchedEffect(key1 = currentTimeMs) {
+    LaunchedEffect(key1 = currentTimeMs, key2 = timerInProgress) {
         if (currentTimeMs > 0) {
-            delay(1000L)
-            currentTimeMs -= 1000L
-            value = currentTimeMs / totalTimeMs.toFloat()
+            if (timerInProgress) {
+                delay(1000L)
+                currentTimeMs -= 1000L
+                value = currentTimeMs / totalTimeMs.toFloat()
+            }
         } else {
             onTimeEnd.invoke()
         }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.frankuzi.webviewapplication.data.repository.UrlRepositoryImpl
 import com.frankuzi.webviewapplication.domain.repository.UrlRepository
+import com.frankuzi.webviewapplication.presentation.utils.ConnectionErrorType
 import com.frankuzi.webviewapplication.presentation.utils.EmulatorChecker
 import com.frankuzi.webviewapplication.presentation.utils.InternetConnectionChecker
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +34,7 @@ class UrlViewModel(
 
         if (!_internetConnectionChecker.isOnline()) {
             _urlState.update {
-                UrlState.UrlError("Connection failed")
+                UrlState.UrlError(ConnectionErrorType.InternetFailed, "")
             }
             return
         }
@@ -53,7 +54,7 @@ class UrlViewModel(
 
         } catch (e: Throwable) {
             _urlState.update {
-                UrlState.UrlError(e.message ?: "Error")
+                UrlState.UrlError(ConnectionErrorType.FirebaseFailed, e.message ?: "")
             }
         }
     }

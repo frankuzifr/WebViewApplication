@@ -10,8 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.frankuzi.webviewapplication.R
 import com.frankuzi.webviewapplication.presentation.UrlState
+import com.frankuzi.webviewapplication.presentation.utils.ConnectionErrorType
 
 @Composable
 fun ErrorContent(
@@ -25,13 +28,22 @@ fun ErrorContent(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = errorState.message
+            text = when (errorState.connectionErrorType) {
+                ConnectionErrorType.InternetFailed -> {
+                    stringResource(id = R.string.internet_connection_problem)
+                }
+                ConnectionErrorType.FirebaseFailed -> {
+                    errorState.message.ifEmpty {
+                        stringResource(id = R.string.firebase_unknown_error)
+                    }
+                }
+            }
         )
         Spacer(modifier = Modifier.height(5.dp))
         Button(onClick = {
             onRetryButtonClick.invoke()
         }) {
-            Text(text = "Retry")
+            Text(text = stringResource(id = R.string.retry))
         }
     }
 }

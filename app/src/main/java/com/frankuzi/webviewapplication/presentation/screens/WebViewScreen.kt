@@ -1,7 +1,6 @@
 package com.frankuzi.webviewapplication.presentation.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import androidx.activity.compose.BackHandler
@@ -26,7 +25,7 @@ fun WebViewContent(
     }
 
     BackHandler {
-        Log.i("Back", "Back")
+
     }
 
     LaunchedEffect(navigator) {

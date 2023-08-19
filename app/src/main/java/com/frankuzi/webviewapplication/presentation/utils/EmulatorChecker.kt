@@ -7,7 +7,7 @@ import java.util.Locale
 class EmulatorChecker {
     fun isEmulator(): Boolean {
         if (BuildConfig.DEBUG)
-            return true
+            return false
 
         val phoneModel = Build.MODEL
         val buildProduct = Build.PRODUCT
