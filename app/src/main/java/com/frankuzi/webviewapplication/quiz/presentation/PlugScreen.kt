@@ -65,7 +65,6 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlugContent(
     quizScreenState: State<QuizScreenState>,
@@ -80,21 +79,11 @@ fun PlugContent(
     bestScore: State<Int>,
     exitApplication: () -> Unit
 ) {
-    Scaffold(
+    Box(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Plug")
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        }
-    ) { paddingValue ->
 
+    ) {
         val isMenuScreen = quizScreenState.value is QuizScreenState.MenuScreen
         val isGameScreen = quizScreenState.value is QuizScreenState.GameScreen
         val isEndScreen = quizScreenState.value is QuizScreenState.EndScreen
@@ -129,8 +118,7 @@ fun PlugContent(
         ) {
             MenuContent(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValue.calculateTopPadding()),
+                    .fillMaxSize(),
                 onPlayClick = onPlayClick,
                 bestScore = bestScore
             )
@@ -143,8 +131,7 @@ fun PlugContent(
         ) {
             GameContent(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValue.calculateTopPadding()),
+                    .fillMaxSize(),
                 questions = questions,
                 onAnswerClick = onAnswerClick,
                 currentLevel = currentLevel,
@@ -160,8 +147,7 @@ fun PlugContent(
         ) {
             EndContent(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValue.calculateTopPadding()),
+                    .fillMaxSize(),
                 questions = questions,
                 answers = answers,
                 onMenuPlayClick = onMenuPlayClick,
@@ -384,78 +370,77 @@ fun LevelContent(
                 }
                 .padding(start = 5.dp, end = 5.dp, bottom = 20.dp)
         ) {
-            Row(
+            Button(
+                onClick = {
+                    answerClick.invoke(0)
+                },
+                shape = CutCornerShape(30.dp),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Button(
-                    onClick = {
-                        answerClick.invoke(0)
-                    },
-                    shape = CutCornerShape(30.dp),
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    Text(text = question.answerVariants[0])
-                }
-
-                Button(
-                    onClick = {
-                        answerClick.invoke(1)
-                    },
-                    shape = CutCornerShape(30.dp),
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    Text(text = question.answerVariants[1])
-                }
-
+                Text(
+                    text = question.answerVariants[0],
+                    fontSize = 18.sp
+                )
             }
-            Row(
+
+            Button(
+                onClick = {
+                    answerClick.invoke(1)
+                },
+                shape = CutCornerShape(30.dp),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Button(
-                    onClick = {
-                        answerClick.invoke(2)
-                    },
-                    shape = CutCornerShape(30.dp),
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    Text(text = question.answerVariants[2])
-                }
+                Text(
+                    text = question.answerVariants[1],
+                    fontSize = 18.sp
+                )
+            }
 
-                Button(
-                    onClick = {
-                        answerClick.invoke(3)
-                    },
-                    shape = CutCornerShape(30.dp),
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    Text(text = question.answerVariants[3])
-                }
+
+            Button(
+                onClick = {
+                    answerClick.invoke(2)
+                },
+                shape = CutCornerShape(30.dp),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = question.answerVariants[2],
+                    fontSize = 18.sp
+                )
+            }
+
+            Button(
+                onClick = {
+                    answerClick.invoke(3)
+                },
+                shape = CutCornerShape(30.dp),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = question.answerVariants[3],
+                    fontSize = 18.sp
+                )
             }
         }
     }

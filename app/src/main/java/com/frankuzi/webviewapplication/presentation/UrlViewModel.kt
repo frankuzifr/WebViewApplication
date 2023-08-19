@@ -2,6 +2,7 @@ package com.frankuzi.webviewapplication.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.frankuzi.webviewapplication.data.repository.UrlRepositoryImpl
@@ -9,10 +10,13 @@ import com.frankuzi.webviewapplication.domain.repository.UrlRepository
 import com.frankuzi.webviewapplication.presentation.utils.ConnectionErrorType
 import com.frankuzi.webviewapplication.presentation.utils.EmulatorChecker
 import com.frankuzi.webviewapplication.presentation.utils.InternetConnectionChecker
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class UrlViewModel(
     val urlRepository: UrlRepository
@@ -43,18 +47,19 @@ class UrlViewModel(
             UrlState.UrlGetting
         }
 
-        try {
+        val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+            _urlState.update {
+                UrlState.UrlError(ConnectionErrorType.FirebaseFailed, exception.message ?: "")
+            }
+        }
+
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             val url = urlRepository.getUrl()
             _urlState.update {
                 if (url.isEmpty())
                     UrlState.UrlNotExist
                 else
                     UrlState.UrlExist(url)
-            }
-
-        } catch (e: Throwable) {
-            _urlState.update {
-                UrlState.UrlError(ConnectionErrorType.FirebaseFailed, e.message ?: "")
             }
         }
     }
