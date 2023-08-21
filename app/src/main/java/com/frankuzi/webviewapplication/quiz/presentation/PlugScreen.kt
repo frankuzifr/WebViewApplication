@@ -231,6 +231,8 @@ fun MenuContent(
                 ),
             ) {
                 Text(
+                    modifier = Modifier
+                        .padding(10.dp),
                     text = stringResource(id = R.string.play),
                     fontSize = 24.sp
                 )
@@ -311,6 +313,8 @@ fun EndContent(
             ),
         ) {
             Text(
+                modifier = Modifier
+                    .padding(10.dp),
                 text = stringResource(id = R.string.menu),
                 fontSize = 24.sp
             )
