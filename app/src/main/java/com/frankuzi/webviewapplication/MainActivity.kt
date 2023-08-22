@@ -168,13 +168,8 @@ class MainActivity : ComponentActivity() {
         private fun permissionsIsGranted(): Boolean {
             if (Build.VERSION.SDK_INT >= 23) {
                 when {
-                    (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) -> {
+                    (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) -> {
                         return true
-                    }
-                    shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) -> {
-                        showSettingsAlertDialog(R.string.need_storage_permission)
-                        return false
                     }
                     shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
                         showSettingsAlertDialog(R.string.need_camera_permission)
@@ -183,7 +178,6 @@ class MainActivity : ComponentActivity() {
                     else -> {
                         requestPermissions(
                             arrayOf (
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                 Manifest.permission.CAMERA
                             ),
                             0)
@@ -193,13 +187,11 @@ class MainActivity : ComponentActivity() {
 
             }
 
-            return if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            return if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 true
             } else {
                 ActivityCompat.requestPermissions(this@MainActivity,
                     arrayOf (
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.CAMERA
                     ),
                     0)
