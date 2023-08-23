@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "673271614980",
-    "project_id": "webview-application-e2c73",
-    "storage_bucket": "webview-application-e2c73.appspot.com"
+    "project_number": "79843867479",
+    "project_id": "quizma-a9a62",
+    "storage_bucket": "quizma-a9a62.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:673271614980:android:562241df0da8acd0d5ef51",
+        "mobilesdk_app_id": "1:79843867479:android:028402ada8402fece0dc12",
         "android_client_info": {
-          "package_name": "com.frankuzi.webviewapplication"
+          "package_name": "quiz.px.app.fma"
         }
       },
       "oauth_client": [
         {
-          "client_id": "673271614980-3vev0vske9b047ir8demc2lmruq6g0eo.apps.googleusercontent.com",
+          "client_id": "79843867479-o406rsofd8iken6e1vbmqf5skq3n06mg.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDVV_mqA21c93ty3dasx7arn1yq8KUSlgI"
+          "current_key": "AIzaSyBkI_J6qtkUNgamm-swGPiG7yT4KP8iII4"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "673271614980-3vev0vske9b047ir8demc2lmruq6g0eo.apps.googleusercontent.com",
+              "client_id": "79843867479-o406rsofd8iken6e1vbmqf5skq3n06mg.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

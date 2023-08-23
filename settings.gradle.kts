@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WebViewApplication"
+rootProject.name = "Px"
 include(":app")
  

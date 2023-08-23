@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.frankuzi.webviewapplication"
+    namespace = "quiz.px.app.fma"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.frankuzi.webviewapplication"
+        applicationId = "quiz.px.app.fma"
         minSdk = 21
         targetSdk = 33
         versionCode = 1
